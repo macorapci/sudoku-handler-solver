@@ -1,2 +1,5 @@
 server:
   port: 7777
+
+solver-app:
+  url: localhost:7778
