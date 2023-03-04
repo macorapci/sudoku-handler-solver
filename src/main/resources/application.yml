@@ -1,5 +1,5 @@
 server:
-  port: 7777
+  port: ${SERVER_PORT:7777}
 
 solver-app:
-  url: localhost:7778
+  url: http://localhost:${SERVER_PORT}
