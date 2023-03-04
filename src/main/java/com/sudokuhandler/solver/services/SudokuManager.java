@@ -1,9 +1,6 @@
 package com.sudokuhandler.solver.services;
 
-import com.sudokuhandler.solver.advices.exceptions.SudokuHandlerException;
-import com.sudokuhandler.solver.advices.exceptions.SudokuHasNoSpaceException;
-import com.sudokuhandler.solver.advices.exceptions.SudokuTableAllCellsAreEmpty;
-import com.sudokuhandler.solver.advices.exceptions.SudokuTableNotValidException;
+import com.sudokuhandler.solver.advices.exceptions.*;
 import com.sudokuhandler.solver.constants.SudokuConstant;
 import com.sudokuhandler.solver.models.ActionHintDto;
 import com.sudokuhandler.solver.models.CellDto;
@@ -23,10 +20,21 @@ public class SudokuManager implements SudokuService {
     private final SudokuSelectorService selectorService;
     private final SudokuMultipleAlgorithmService sudokuMultipleAlgorithmService;
     private final MultipleHintService multipleHintService;
+    private final SudokuBruteForceService sudokuBruteForceService;
 
     @Override
     public ActionHintDto solveSudoku(int[][] sudokuTable) {
         this.validateSudokuTable(sudokuTable);
+        int[][] deepCopyOfSudokuTable = Arrays.stream(sudokuTable)
+                .map(int[]::clone)
+                .toArray(int[][]::new);
+
+        boolean isBruteForceSolvable = this.sudokuBruteForceService.isBruteForceSolve(deepCopyOfSudokuTable);
+        if (!isBruteForceSolvable) {
+            log.error("Sudoku table could not solve with brute force! sudokuTable: {}", Arrays.deepToString(sudokuTable));
+            throw new SudokuCouldNotSolveWithBruteForce();
+        }
+
         var cellTable = this.sudokuTableToCellTable(sudokuTable);
         var actionDto = this.sudokuMultipleAlgorithmService.solveSudoku(cellTable);
         return this.multipleHintService.createActionHintDto(actionDto);

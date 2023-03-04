@@ -33,7 +33,7 @@ public class SolverAdvice {
         String errorCode = SolverUtils.createErrorCode();
         String translatedErrorMessage = this.localizationService.getLocalText(SudokuUnknownErrorException.class.getSimpleName(),
                 DEFAULT_ERROR_MESSAGE, errorCode);
-        log.error("{}", DEFAULT_ERROR_MESSAGE, exception);
+        log.error("{} errorCode: {}", DEFAULT_ERROR_MESSAGE, errorCode, exception);
         return ErrorResponse.create(new SudokuUnknownErrorException(), HttpStatus.INTERNAL_SERVER_ERROR, translatedErrorMessage);
     }
 }
