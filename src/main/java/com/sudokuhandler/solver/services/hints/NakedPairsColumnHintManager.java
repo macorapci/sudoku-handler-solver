@@ -3,13 +3,24 @@ package com.sudokuhandler.solver.services.hints;
 import com.sudokuhandler.solver.models.EliminateDto;
 import com.sudokuhandler.solver.models.EliminateMoveDto;
 import com.sudokuhandler.solver.models.SudokuAlgorithmType;
+import com.sudokuhandler.solver.services.LocalizationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.util.stream.Collectors;
 
 @Service
-public class NakedPairsColumnHintManager implements HintService {
+@RequiredArgsConstructor
+class NakedPairsColumnHintManager implements HintService {
+    private static final String MESSAGE_KEY = "hints.nakedPairs.column";
+    private static final String MESSAGE_TEMPLATE = """
+                {0}. column have 2 cells with same 2 possible values.\s
+                Other cells can''t have the same values so {1} are eliminating from {2} indexes.
+                """;
+
+    private final LocalizationService localizationService;
+
     @Override
     public SudokuAlgorithmType getSudokuAlgorithmType() {
         return SudokuAlgorithmType.NAKED_PAIRS_COLUMN;
@@ -25,13 +36,10 @@ public class NakedPairsColumnHintManager implements HintService {
                 .map(this::getPointFromEliminateDto)
                 .collect(Collectors.joining(", "));
 
-        String message = """
-                {0}. column have 2 cells with same 2 possible values.\s
-                Other cells can''t have the same values so {1} are eliminating from {2} indexes.\s
-                """;
-
         var column = eliminateMoveDto.getColumn() + 1;
-        return MessageFormat.format(message, column, eliminatedList, eliminateIndex);
+
+        String defaultMessage = MessageFormat.format(MESSAGE_TEMPLATE, column, eliminatedList, eliminateIndex);
+        return this.localizationService.getLocalText(MESSAGE_KEY, defaultMessage, column, eliminatedList, eliminateIndex);
     }
 
     private String getPointFromEliminateDto(EliminateDto eliminateDto) {

@@ -9,5 +9,4 @@ public interface SudokuService {
     ActionHintDto solveSudoku(int [][] sudokuTable);
     void validateSudokuTable(int [][] sudokuTable) throws SudokuHandlerException;
     CellDto[][] sudokuTableToCellTable(int [][] sudokuTable);
-    ActionHintDto createActionHintDto(ActionDto actionDto);
 }

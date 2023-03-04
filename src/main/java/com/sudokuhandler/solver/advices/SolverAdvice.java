@@ -20,6 +20,6 @@ public class SolverAdvice {
     @ExceptionHandler(Exception.class)
     public ErrorResponse handleException(Exception ex) {
         log.error("Unknown exception occurred.", ex);
-        return ErrorResponse.create(new SudokuUnknownErrorException(), HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return ErrorResponse.create(new SudokuUnknownErrorException(), HttpStatus.INTERNAL_SERVER_ERROR, "An exception occurred.");
     }
 }

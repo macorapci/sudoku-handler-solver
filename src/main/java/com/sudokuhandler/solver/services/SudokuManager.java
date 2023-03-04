@@ -5,19 +5,15 @@ import com.sudokuhandler.solver.advices.exceptions.SudokuHasNoSpaceException;
 import com.sudokuhandler.solver.advices.exceptions.SudokuTableAllCellsAreEmpty;
 import com.sudokuhandler.solver.advices.exceptions.SudokuTableNotValidException;
 import com.sudokuhandler.solver.constants.SudokuConstant;
-import com.sudokuhandler.solver.models.ActionDto;
 import com.sudokuhandler.solver.models.ActionHintDto;
 import com.sudokuhandler.solver.models.CellDto;
-import com.sudokuhandler.solver.models.SudokuAlgorithmType;
 import com.sudokuhandler.solver.services.algorithms.SudokuMultipleAlgorithmService;
-import com.sudokuhandler.solver.services.hints.HintService;
+import com.sudokuhandler.solver.services.hints.MultipleHintService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.MessageFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -26,14 +22,14 @@ import java.util.stream.Stream;
 public class SudokuManager implements SudokuService {
     private final SudokuSelectorService selectorService;
     private final SudokuMultipleAlgorithmService sudokuMultipleAlgorithmService;
-    private final List<HintService> hintServiceList;
+    private final MultipleHintService multipleHintService;
 
     @Override
     public ActionHintDto solveSudoku(int[][] sudokuTable) {
         this.validateSudokuTable(sudokuTable);
         var cellTable = this.sudokuTableToCellTable(sudokuTable);
         var actionDto = this.sudokuMultipleAlgorithmService.solveSudoku(cellTable);
-        return this.createActionHintDto(actionDto);
+        return this.multipleHintService.createActionHintDto(actionDto);
     }
 
     @Override
@@ -88,25 +84,6 @@ public class SudokuManager implements SudokuService {
         return cellTable;
     }
 
-    @Override
-    public ActionHintDto createActionHintDto(ActionDto actionDto) {
-        var hintList = actionDto.getEliminateList()
-                .stream()
-                .map(eliminateMoveDto -> this.getHintServiceByAlgorithmType(eliminateMoveDto.getSudokuAlgorithmType()).createHint(eliminateMoveDto))
-                .collect(Collectors.toCollection(LinkedList::new));
-
-        String lastHint = MessageFormat.format("Single possible for {0}x{1} cell is {2}.",
-                actionDto.getRow() + 1, actionDto.getColumn() + 1, actionDto.getValue());
-        hintList.add(lastHint);
-
-        return ActionHintDto.builder()
-                .hints(hintList)
-                .row(actionDto.getRow())
-                .column(actionDto.getColumn())
-                .value(actionDto.getValue())
-                .build();
-    }
-
     private CellDto generateCellDto(int[][] sudokuTable,
                                     int row, int column) {
         var possibleList = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9));
@@ -134,12 +111,5 @@ public class SudokuManager implements SudokuService {
         return CellDto.builder()
                 .possibleList(possibleList)
                 .build();
-    }
-
-    private HintService getHintServiceByAlgorithmType(SudokuAlgorithmType sudokuAlgorithmType) {
-        return this.hintServiceList.stream()
-                .filter(hintService -> hintService.getSudokuAlgorithmType().equals(sudokuAlgorithmType))
-                .findAny()
-                .orElseThrow();
     }
 }
